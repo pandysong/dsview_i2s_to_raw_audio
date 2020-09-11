@@ -1,0 +1,30 @@
+import sys
+import struct
+
+if len(sys.argv) < 4 or not sys.argv[1] in ["left", "right"]:
+    print("Usage: dsviewi2s <left|right> < file_exported_from_ds_view > "
+          "<raw_audio_file>")
+    sys.exit(-1)
+
+ds = sys.argv[2]
+raw = sys.argv[3]
+
+# set this to value other than 0 to print debug info
+debug_count = 0
+
+if sys.argv == "left":
+    search_str = "Left channel: "
+else:
+    search_str = "Right channel: "
+
+with open(raw, "wb") as rawdata:
+    for line in open(ds):
+        idx = line.find(search_str)
+        if idx > 0:
+            idx = idx + len(search_str) + 4
+            bytes_str = line[idx:idx+4]
+            val = struct.unpack('>h', bytes.fromhex(bytes_str))[0]
+            if debug_count:
+                debug_count = debug_count - 1
+                print("{} converted to {}".format(bytes_str, val))
+            rawdata.write(struct.pack('<h', val))
