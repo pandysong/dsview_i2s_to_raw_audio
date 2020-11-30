@@ -40,23 +40,37 @@ Id,Time[s],I²S
 Usage:
 
 ```
-Usage: dsviewi2s <left|right> < file_exported_from_ds_view > <raw_audio_file>
+usage: dsviewi2s [-h] [-c CHANNEL] [-v DEBUGCOUNT] [-d DATAWIDTH] csv output
+
+positional arguments:
+  csv                   csv file from dsview
+  output                output bin file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CHANNEL, --channel CHANNEL
+                        "left" or "right"
+  -v DEBUGCOUNT, --debugcount DEBUGCOUNT
+                        print first n values in verbose mode
+  -d DATAWIDTH, --datawidth DATAWIDTH
+                        data width in bytes, 2 for 16bits, 4 for 32bits,this is for both csv and output, that means if the csv is 32bits, the output is also 32bit
 ```
 
-Following command convert left channel in the csv file to audio.bin
+Following command convert left channel in the csv file to audio.bin:
+
 ```
-dsviewi2s left DSLogic-la-200904-172721.csv audio.bin
+dsviewi2s -c left -d 4 DSLogic-la-200904-172721.csv audio.bin
 ```
 
 # Notes
 
 In DSView, the when capturing the data, it is important to understand that the
-I2S data format on the I2S bus, in my case, the first clock is not used
-(always 0), so we have to set the data length in DSView from 16bits to 17bits
-in order to capture the full 16bits effective data. Otherwise the data capture
-is not correct.
+I2S data format on the I2S bus, In normal case, the fisrt bit is the second
+sampled at the second rising edge after LRCK, so we have to shift by one bits:
+
+![](dsview_setting.png)
 
 # Disclaimer
 
-the Software and code samples available are provided "as is" without warranty
+The Software and code samples available are provided "as is" without warranty
 of any kind, either express or implied. Use at your own risk.
