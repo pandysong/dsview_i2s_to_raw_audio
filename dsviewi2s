@@ -1,30 +1,50 @@
 import sys
 import struct
+import argparse
 
-if len(sys.argv) < 4 or not sys.argv[1] in ["left", "right"]:
-    print("Usage: dsviewi2s <left|right> < file_exported_from_ds_view > "
-          "<raw_audio_file>")
+parser = argparse.ArgumentParser()
+parser.add_argument('-c', '--channel', type=str, required=False, help=
+        '"left" or "right"')
+parser.add_argument('-v', '--debugcount', type=int, required=False,
+                    help="print first n values in verbose mode")
+parser.add_argument('-d', '--datawidth', type=int, default =0, required=False,
+                    help="data width in bytes, 2 for 16bits, 4 for 32bits,"
+                         "this is for both csv and output, that means if the "
+                         "csv is 32bits, the output is also 32bit")
+parser.add_argument('csv', type=str, help='csv file from dsview')
+parser.add_argument('output', type=str, help='output bin file')
+
+args = parser.parse_args()
+
+if args.channel == "left":
+    search_str = "Left channel: "
+elif args.channel == "right":
+    search_str = "Right channel: "
+else:
+    print("channel must be 'left' or 'right'")
     sys.exit(-1)
 
-ds = sys.argv[2]
-raw = sys.argv[3]
+if args.datawidth not in [2,4]:
+    print("datawidth must be in 2 or 4")
+    sys.exit(-1)
 
-# set this to value other than 0 to print debug info
-debug_count = 0
-
-if sys.argv == "left":
-    search_str = "Left channel: "
-else:
-    search_str = "Right channel: "
-
-with open(raw, "wb") as rawdata:
-    for line in open(ds):
+with open(args.output, "wb") as rawdata:
+    for line in open(args.csv):
         idx = line.find(search_str)
         if idx > 0:
-            idx = idx + len(search_str) + 4
-            bytes_str = line[idx:idx+4]
-            val = struct.unpack('>h', bytes.fromhex(bytes_str))[0]
-            if debug_count:
-                debug_count = debug_count - 1
+            offset = 8 - args.datawidth * 2
+            idx = idx + len(search_str) + offset
+            bytes_str = line[idx:idx+8-offset]
+
+            if args.datawidth == 2:
+                val = struct.unpack('>h', bytes.fromhex(bytes_str))[0]
+            else:
+                val = struct.unpack('>i', bytes.fromhex(bytes_str))[0]
+            if args.debugcount:
+                args.debugcount = args.debugcount - 1
                 print("{} converted to {}".format(bytes_str, val))
-            rawdata.write(struct.pack('<h', val))
+
+            if args.datawidth == 2:
+                rawdata.write(struct.pack('<h', val))
+            else:
+                rawdata.write(struct.pack('<i', val))
