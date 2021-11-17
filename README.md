@@ -62,6 +62,13 @@ Following command convert left channel in the csv file to audio.bin:
 dsviewi2s -c left -d 4 DSLogic-la-200904-172721.csv audio.bin
 ```
 
+# import audacity
+
+Note that since we have captured the data in 32bits, so the data we have save
+is also 32bits, we also need to import using 32bit format:
+
+![](import_to_audacity.jpeg)
+
 # Notes
 
 In DSView, the when capturing the data, it is important to understand that the
